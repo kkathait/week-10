@@ -34,7 +34,6 @@ lr.fit(X_1, y_1)
 with open("model_1.pickle", "wb") as f:
     pickle.dump(lr, f)
 
-
 # ==========================================
 # Exercise 2: Decision Tree Regressor
 # ==========================================
@@ -59,20 +58,16 @@ def roast_category(value):
 # Create numerical roast column
 df["roast_cat"] = df["roast"].apply(roast_category)
 
-df_2 = df[["100g_USD", "roast_cat", "rating"]].dropna(
-    subset=["100g_USD", "rating"]
-)
+df_2 = df[["100g_USD", "roast_cat", "rating"]].dropna()
 
 X_2 = df_2[["100g_USD", "roast_cat"]]
 y_2 = df_2["rating"]
 
-dtr = Pipeline([
-    ("imputer", SimpleImputer(strategy="constant", fill_value=-1)),
-    ("regressor", DecisionTreeRegressor(random_state=42))
-])
-
+# Train Decision Tree Regressor directly
+dtr = DecisionTreeRegressor(random_state=42)
 dtr.fit(X_2, y_2)
 
+# Save model
 with open("model_2.pickle", "wb") as f:
     pickle.dump(dtr, f)
 
