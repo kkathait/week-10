@@ -1,23 +1,18 @@
 # your code here
 
-import pickle
-import numpy as np
 import pandas as pd
+import numpy as np
+import pickle
 
 
-# Load trained models
 with open("model_1.pickle", "rb") as f:
     model_1 = pickle.load(f)
 
 with open("model_2.pickle", "rb") as f:
     model_2 = pickle.load(f)
 
-with open("model_3.pickle", "rb") as f:
-    model_3 = pickle.load(f)
-
 
 def roast_category(value):
-    """Convert roast names into numerical categories."""
 
     roast_mapping = {
         "Light": 0,
@@ -33,53 +28,27 @@ def roast_category(value):
     return roast_mapping.get(str(value).strip(), np.nan)
 
 
-def predict_rating(X, text=False):
-    """
-    Predict coffee ratings.
-
-    text=False:
-        X contains 100g_USD and roast columns.
-
-    text=True:
-        X contains a text column with coffee descriptions.
-    """
-
-    if text:
-        if isinstance(X, pd.DataFrame):
-            descriptions = X["text"].fillna("").astype(str)
-        else:
-            descriptions = pd.Series(X).fillna("").astype(str)
-
-        return model_3.predict(descriptions)
-
-    # Convert roast names into numerical categories
-    X = X.copy()
-    X["roast_cat"] = X["roast"].apply(roast_category)
+def predict_rating(df_X):
 
     predictions = []
 
-    for _, row in X.iterrows():
+    for _, row in df_X.iterrows():
 
         price = row["100g_USD"]
-        roast = row["roast_cat"]
+        roast = roast_category(row["roast"])
 
-        if pd.notna(roast):
-            # Use both price and roast
-            features = pd.DataFrame(
-                [[price, roast]],
-                columns=["100g_USD", "roast_cat"]
-            )
-
-            prediction = model_2.predict(features)[0]
+        if pd.isna(roast):
+            prediction = model_1.predict(
+                pd.DataFrame({"100g_USD": [price]})
+            )[0]
 
         else:
-            # Unknown roast: use price only
-            features = pd.DataFrame(
-                [[price]],
-                columns=["100g_USD"]
-            )
-
-            prediction = model_1.predict(features)[0]
+            prediction = model_2.predict(
+                pd.DataFrame({
+                    "100g_USD": [price],
+                    "roast_cat": [roast]
+                })
+            )[0]
 
         predictions.append(prediction)
 
